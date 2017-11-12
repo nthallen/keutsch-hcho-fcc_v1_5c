@@ -385,6 +385,12 @@
     <Compile Include="atmel_start_pins.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="commands.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="commands.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="config\hpl_divas_config.h">
       <SubType>compile</SubType>
     </Compile>
@@ -410,6 +416,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="config\RTE_Components.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="control.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="control.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Device_Startup\startup_samc21.c">
@@ -752,6 +764,24 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="spi.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="spi.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="subbus.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="subbus.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="usart.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="usart.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

@@ -3,6 +3,7 @@
 #include "spi.h"
 
 void commands_init(void) {
+  #ifdef COMMAND_PINS_DEFINED
   gpio_set_pin_direction(ADR0, GPIO_DIRECTION_IN);
   gpio_set_pin_pull_mode(ADR0, GPIO_PULL_OFF);
   gpio_set_pin_function(ADR0, GPIO_PIN_FUNCTION_OFF);
@@ -50,7 +51,8 @@ void commands_init(void) {
   gpio_set_pin_direction(LED, GPIO_DIRECTION_OUT);
   gpio_set_pin_level(LED, true);
   gpio_set_pin_function(LED, GPIO_PIN_FUNCTION_OFF);
-
+  #endif
+  
   subbus_cache_config(SUBBUS_ADDR_CMDS, true);
 }
 

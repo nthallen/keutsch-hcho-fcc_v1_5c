@@ -22,8 +22,11 @@ static struct io_descriptor *USART_CTRL_io;
  * Enables register interface and peripheral clock
  */
 void USART_CTRL_CLOCK_init() {
-	_pm_enable_bus_clock(PM_BUS_APBC, SERCOM1);
-	_gclk_enable_channel(SERCOM1_GCLK_ID_CORE, CONF_GCLK_SERCOM1_CORE_SRC);
+	hri_gclk_write_PCHCTRL_reg(GCLK, SERCOM3_GCLK_ID_CORE,
+    CONF_GCLK_SERCOM3_CORE_SRC | (1 << GCLK_PCHCTRL_CHEN_Pos));
+	hri_gclk_write_PCHCTRL_reg(GCLK, SERCOM3_GCLK_ID_SLOW,
+    CONF_GCLK_SERCOM3_SLOW_SRC | (1 << GCLK_PCHCTRL_CHEN_Pos));
+	hri_mclk_set_APBCMASK_SERCOM3_bit(MCLK);
 }
 
 /**
@@ -32,8 +35,8 @@ void USART_CTRL_CLOCK_init() {
  * Set each required pin to USART functionality
  */
 void USART_CTRL_PORT_init() {
-	gpio_set_pin_function(PA16, PINMUX_PA16C_SERCOM1_PAD0);
-	gpio_set_pin_function(PA17, PINMUX_PA17C_SERCOM1_PAD1);
+  gpio_set_pin_function(UART_TX, PINMUX_PA22C_SERCOM3_PAD0);
+  gpio_set_pin_function(UART_RX, PINMUX_PA23C_SERCOM3_PAD1);
 }
 
 static void tx_cb_USART_CTRL(const struct usart_async_descriptor *const io_descr) {

@@ -27,39 +27,41 @@ static inline void chip_deselect(uint8_t pin) {
 }
 
 static void SPI_ADC_PORT_init(void) {
-  // PA07 SERCOM0 PAD[3] MISO
-  gpio_set_pin_direction(PA07, GPIO_DIRECTION_IN);
-  gpio_set_pin_pull_mode(PA07, GPIO_PULL_OFF);
-  gpio_set_pin_function(PA07, PINMUX_PA07D_SERCOM0_PAD3);
+  // PB02 SERCOM5 PAD[0] MISO
+  gpio_set_pin_direction(MISO, GPIO_DIRECTION_IN);
+  gpio_set_pin_pull_mode(MISO, GPIO_PULL_OFF);
+  gpio_set_pin_function(MISO, PINMUX_PB02D_SERCOM5_PAD0);
 
-  // PA04 SERCOM0 PAD[0] MOSI
-  gpio_set_pin_direction(PA04, GPIO_DIRECTION_OUT);
-  gpio_set_pin_level(PA04, false);
-  gpio_set_pin_function(PA04, PINMUX_PA04D_SERCOM0_PAD0);
+  // PB00 SERCOM5 PAD[2] MOSI
+  gpio_set_pin_direction(MOSI, GPIO_DIRECTION_OUT);
+  gpio_set_pin_level(MOSI, false);
+	gpio_set_pin_function(MOSI, PINMUX_PB00D_SERCOM5_PAD2);
 
-  // PA05 SERCOM0 PAD[1] SCK
-  gpio_set_pin_direction(PA05, GPIO_DIRECTION_OUT);
-  gpio_set_pin_level(PA05, false);
-  gpio_set_pin_function(PA05, PINMUX_PA05D_SERCOM0_PAD1);
-
+  // PB01 SERCOM5 PAD[3] SCK
+  gpio_set_pin_direction(SCK, GPIO_DIRECTION_OUT);
+  gpio_set_pin_level(SCK, false);
+	gpio_set_pin_function(SCK, PINMUX_PB01D_SERCOM5_PAD3);
 
   // PA02: CS0/
   gpio_set_pin_direction(CS0, GPIO_DIRECTION_OUT);
   gpio_set_pin_level(CS0, true);
   gpio_set_pin_function(CS0, GPIO_PIN_FUNCTION_OFF);
-  // PA06: CS1/
-  gpio_set_pin_direction(CS1, GPIO_DIRECTION_OUT);
-  gpio_set_pin_level(CS1, true);
-  gpio_set_pin_function(CS1, GPIO_PIN_FUNCTION_OFF);
-  // PA03: DACSYNC/
-  gpio_set_pin_direction(DACSYNC, GPIO_DIRECTION_OUT);
-  gpio_set_pin_level(DACSYNC, true);
-  gpio_set_pin_function(DACSYNC, GPIO_PIN_FUNCTION_OFF);
+  // PA27: CS1
+	gpio_set_pin_direction(CS1, GPIO_DIRECTION_OUT);
+	gpio_set_pin_level(CS1,	false);
+	gpio_set_pin_function(CS1, GPIO_PIN_FUNCTION_OFF);
+  // PB04: CSDAC (was DACSYNC/)
+	gpio_set_pin_direction(CSDAC, GPIO_DIRECTION_OUT);
+	gpio_set_pin_level(CSDAC,	true);
+	gpio_set_pin_function(CSDAC, GPIO_PIN_FUNCTION_OFF);
 }
 
 static void SPI_ADC_CLOCK_init(void) {
-  _pm_enable_bus_clock(PM_BUS_APBC, SERCOM0);
-  _gclk_enable_channel(SERCOM0_GCLK_ID_CORE, CONF_GCLK_SERCOM0_CORE_SRC);
+	hri_gclk_write_PCHCTRL_reg(GCLK, SERCOM5_GCLK_ID_CORE,
+    CONF_GCLK_SERCOM5_CORE_SRC | (1 << GCLK_PCHCTRL_CHEN_Pos));
+	hri_gclk_write_PCHCTRL_reg(GCLK, SERCOM5_GCLK_ID_SLOW,
+    CONF_GCLK_SERCOM5_SLOW_SRC | (1 << GCLK_PCHCTRL_CHEN_Pos));
+	hri_mclk_set_APBCMASK_SERCOM5_bit(MCLK);
 }
 
 static void complete_cb_SPI_ADC(const struct spi_m_async_descriptor *const io_descr) {
@@ -79,7 +81,6 @@ static void start_spi_transfer(uint8_t pin, uint8_t const *txbuf, int length) {
 static uint8_t CONVERT_AIN0[4] = { 0x81, 0x8D, 0x81, 0x8D };
 static uint8_t CONVERT_AIN2[2] = { 0xD1, 0x8D };
 static uint8_t CONVERT_TEMP[2] = { 0x81, 0x9D };
-#define MISO PA07
 
 enum adc_state_t {adc_init, adc_init_tx,
            adc_ain0_wait, adc_ain0_tx,
@@ -178,7 +179,7 @@ typedef struct {
   uint16_t current;
 } dac_poll_def;
 
-static dac_poll_def dac_u5 = {false, dac_init, DACSYNC, {0x14, 0x15, 0x16, 0x17}, 0};
+static dac_poll_def dac_u5 = {false, dac_init, CSDAC, {0x14, 0x15, 0x16, 0x17}, 0};
 static uint8_t DACREFENABLE[3] = {0x38, 0x00, 0x01};
 static uint8_t DACupdate[3];
 
@@ -250,7 +251,7 @@ void poll_spi(void) {
 
 void spi_init(void) {
   SPI_ADC_CLOCK_init();
-  spi_m_async_init(&SPI_ADC, SERCOM0);
+  spi_m_async_init(&SPI_ADC, SERCOM5);
   SPI_ADC_PORT_init();
   spi_m_async_get_io_descriptor(&SPI_ADC, &SPI_ADC_io);
   spi_m_async_register_callback(&SPI_ADC, SPI_M_ASYNC_CB_XFER, (FUNC_PTR)complete_cb_SPI_ADC);
