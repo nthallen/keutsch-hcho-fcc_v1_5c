@@ -92,7 +92,7 @@
 // <i> Indicates whether 32kHz Output is enabled or not
 // <id> xosc32k_arch_en32k
 #ifndef CONF_XOSC32K_EN32K
-#define CONF_XOSC32K_EN32K 1
+#define CONF_XOSC32K_EN32K 0
 #endif
 
 // <q> Clock Switch Back
@@ -192,7 +192,7 @@
 // <i> Indicates whether 32kHz Output is enabled or not
 // <id> osc32k_arch_en32k
 #ifndef CONF_OSC32K_EN32K
-#define CONF_OSC32K_EN32K 0
+#define CONF_OSC32K_EN32K 1
 #endif
 // </h>
 // </e>

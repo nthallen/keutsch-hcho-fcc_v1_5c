@@ -44,7 +44,7 @@
 // <i> Indicates whether Output Enable is enabled or not
 // <id> gclk_arch_gen_0_oe
 #ifndef CONF_GCLK_GEN_0_OE
-#define CONF_GCLK_GEN_0_OE 0
+#define CONF_GCLK_GEN_0_OE 1
 #endif
 
 // <q> Output Off Value
@@ -73,7 +73,7 @@
 //<o> Generic clock generator 0 division <0x0000-0xFFFF>
 // <id> gclk_gen_0_div
 #ifndef CONF_GCLK_GEN_0_DIV
-#define CONF_GCLK_GEN_0_DIV 2
+#define CONF_GCLK_GEN_0_DIV 1
 #endif
 // </h>
 // </e>
