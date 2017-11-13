@@ -58,7 +58,7 @@ static void rx_cb_USART_CTRL(const struct usart_async_descriptor *const io_descr
  */
 void USART_CTRL_init(void) {
 	USART_CTRL_CLOCK_init();
-	usart_async_init(&USART_CTRL, SERCOM1, USART_CTRL_rx_buffer,
+	usart_async_init(&USART_CTRL, SERCOM3, USART_CTRL_rx_buffer,
                    USART_CTRL_RX_BUFFER_SIZE, (void *)NULL);
 	USART_CTRL_PORT_init();
 }

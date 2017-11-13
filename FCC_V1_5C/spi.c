@@ -13,7 +13,7 @@
 static struct spi_m_async_descriptor SPI_ADC;
 static volatile bool SPI_ADC_txfr_complete = true;
 static struct io_descriptor *SPI_ADC_io;
-static bool spi_enabled = true;
+static bool spi_enabled = SPI_ENABLE_DEFAULT;
 
 void spi_enable(bool value) {
   spi_enabled = value;
@@ -78,9 +78,9 @@ static void start_spi_transfer(uint8_t pin, uint8_t const *txbuf, int length) {
 }
 
 /* The bytes need to be swapped on output, since the driver transmits LSB first */
-static uint8_t CONVERT_AIN0[4] = { 0x81, 0x8D, 0x81, 0x8D };
-static uint8_t CONVERT_AIN2[2] = { 0xD1, 0x8D };
-static uint8_t CONVERT_TEMP[2] = { 0x81, 0x9D };
+static uint8_t CONVERT_AIN0[4] = { 0x81, 0x8B, 0x81, 0x8B };
+static uint8_t CONVERT_AIN2[4] = { 0xD1, 0x8B, 0xD1, 0x8B };
+static uint8_t CONVERT_TEMP[4] = { 0x81, 0x9B, 0x81, 0x9B };
 
 enum adc_state_t {adc_init, adc_init_tx,
            adc_ain0_wait, adc_ain0_tx,
@@ -96,8 +96,8 @@ typedef struct {
   uint16_t poll_count;
 } adc_poll_def;
 
-static adc_poll_def adc_u2 = {true, adc_init, CS0, 0x10, 0x11, 0x19};
-static adc_poll_def adc_u3 = {false, adc_init, CS1, 0x12, 0x13, 0x1A};
+static adc_poll_def adc_u2 = {SPI_ADC_U2_ENABLED, adc_init, CS0, 0x10, 0x11, 0x19};
+static adc_poll_def adc_u3 = {SPI_ADC_U3_ENABLED, adc_init, CS1, 0x12, 0x13, 0x1A};
 
 /**
  * poll_adc() is only called when SPI_ADC_txfr_complete is non-zero 
@@ -120,49 +120,55 @@ static bool poll_adc(adc_poll_def *adc) {
       chip_select(adc->cs_pin);
       if (gpio_get_pin_level(MISO)) {
         chip_deselect(adc->cs_pin);
-        if (++adc->poll_count >= 50) {
-          adc->state = adc_init;
-        }
-        return true;
+        if (++adc->poll_count <= ADC_CONVERT_TIMEOUT) {
+          return true;
+        } // Otherwise just go ahead to the next step
       }
-      start_spi_transfer(adc->cs_pin, CONVERT_AIN2, 2);
+      start_spi_transfer(adc->cs_pin, CONVERT_AIN2, 4);
       adc->state = adc_ain0_tx;
       return false;
     case adc_ain0_tx:
       chip_deselect(adc->cs_pin);
       value = (spi_read_data[0] << 8) + spi_read_data[1];
       subbus_cache_update(adc->AIN0_addr, value);
+      adc->poll_count = 0;
       adc->state = adc_ain2_wait;
       return true;
     case adc_ain2_wait:
       chip_select(adc->cs_pin);
       if (gpio_get_pin_level(MISO)) {
         chip_deselect(adc->cs_pin);
-        return true;
+        if (++adc->poll_count <= ADC_CONVERT_TIMEOUT) {
+          return true;
+        } // Otherwise just go ahead to the next step
       }
-      start_spi_transfer(adc->cs_pin, CONVERT_TEMP, 2);
+      start_spi_transfer(adc->cs_pin, CONVERT_TEMP, 4);
       adc->state = adc_ain2_tx;
       return false;
     case adc_ain2_tx:
       chip_deselect(adc->cs_pin);
       value = (spi_read_data[0] << 8) + spi_read_data[1];
       subbus_cache_update(adc->AIN2_addr, value);
+      adc->poll_count = 0;
       adc->state = adc_temp_wait;
       return true;
     case adc_temp_wait:
       chip_select(adc->cs_pin);
       if (gpio_get_pin_level(MISO)) {
         chip_deselect(adc->cs_pin);
-        return true;
+        if (++adc->poll_count <= ADC_CONVERT_TIMEOUT) {
+          return true;
+        } // Otherwise just go ahead to the next step
       }
-      start_spi_transfer(adc->cs_pin, CONVERT_AIN0, 2);
+      start_spi_transfer(adc->cs_pin, CONVERT_AIN0, 4);
       adc->state = adc_temp_tx;
       return false;
     case adc_temp_tx:
       chip_deselect(adc->cs_pin);
       value = (spi_read_data[0] << 8) + spi_read_data[1];
       subbus_cache_update(adc->TEMP_addr, value);
-      adc->state = adc_temp_wait;
+      adc->poll_count = 0;
+      adc->state = adc_ain0_wait;
       return true;
     default:
       assert(false, __FILE__, __LINE__);
@@ -179,7 +185,7 @@ typedef struct {
   uint16_t current;
 } dac_poll_def;
 
-static dac_poll_def dac_u5 = {false, dac_init, CSDAC, {0x14, 0x15, 0x16, 0x17}, 0};
+static dac_poll_def dac_u5 = {SPI_DAC_U5_ENABLED, dac_init, CSDAC, {0x14, 0x15, 0x16, 0x17}, 0};
 static uint8_t DACREFENABLE[3] = {0x38, 0x00, 0x01};
 static uint8_t DACupdate[3];
 
