@@ -310,7 +310,7 @@
 // <i> Determines if input data is sampled on leading or trailing SCK edge. (CPHA)
 // <id> spi_master_arch_cpha
 #ifndef CONF_SERCOM_5_SPI_CPHA
-#define CONF_SERCOM_5_SPI_CPHA 0x0
+#define CONF_SERCOM_5_SPI_CPHA 0x1
 #endif
 
 // <o> Immediate Buffer Overflow Notification
